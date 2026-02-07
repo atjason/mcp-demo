@@ -47,52 +47,63 @@ async def main():
                 for t in tools
             ]
 
-            messages = [
-                {"role": "user", "content": "跟 Jason 打个招呼"}
-            ]
+            messages = []
+
+            print("Chat (exit/quit/q to leave):")
 
             while True:
                 try:
-                    response = await ollama.chat(
-                        model=OLLAMA_MODEL,
-                        messages=messages,
-                        tools=ollama_tools,
-                    )
-                except Exception as e:
-                    print(
-                        f"Ollama 调用失败（请确认 Ollama 已启动且已拉取模型，例如 ollama pull {OLLAMA_MODEL}）: {e}"
-                    )
-                    raise
-
-                msg = response["message"]
-                messages.append(msg)
-
-                if "tool_calls" not in msg or not msg["tool_calls"]:
-                    # No tool calls -> final reply
-                    if msg.get("content"):
-                        print("Model reply:", msg["content"])
+                    user_text = input("You: ").strip()
+                except (EOFError, KeyboardInterrupt):
+                    print("\nBye.")
+                    break
+                if not user_text:
+                    continue
+                if user_text.lower() in ("exit", "quit", "q"):
+                    print("Bye.")
                     break
 
-                # Execute each tool call and append tool results to messages
-                for call in msg["tool_calls"]:
-                    tool_name = call["function"]["name"]
-                    raw_args = call["function"].get("arguments")
-                    if isinstance(raw_args, str):
-                        tool_args = json.loads(raw_args) if raw_args else {}
-                    else:
-                        tool_args = raw_args or {}
+                messages.append({"role": "user", "content": user_text})
 
-                    result = await session.call_tool(tool_name, tool_args)
-                    result_text = result.content[0].text if result.content else ""
-
-                    # Append tool result for this call (Ollama accepts role "tool" + content)
-                    tool_id = call.get("id")
-                    if tool_id:
-                        messages.append(
-                            {"role": "tool", "content": result_text, "tool_call_id": tool_id}
+                while True:
+                    try:
+                        response = await ollama.chat(
+                            model=OLLAMA_MODEL,
+                            messages=messages,
+                            tools=ollama_tools,
                         )
-                    else:
-                        messages.append({"role": "tool", "content": result_text})
+                    except Exception as e:
+                        print(
+                            f"Ollama 调用失败（请确认 Ollama 已启动且已拉取模型，例如 ollama pull {OLLAMA_MODEL}）: {e}"
+                        )
+                        raise
+
+                    msg = response["message"]
+                    messages.append(msg)
+
+                    if "tool_calls" not in msg or not msg["tool_calls"]:
+                        if msg.get("content"):
+                            print("Assistant:", msg["content"])
+                        break
+
+                    for call in msg["tool_calls"]:
+                        tool_name = call["function"]["name"]
+                        raw_args = call["function"].get("arguments")
+                        if isinstance(raw_args, str):
+                            tool_args = json.loads(raw_args) if raw_args else {}
+                        else:
+                            tool_args = raw_args or {}
+
+                        result = await session.call_tool(tool_name, tool_args)
+                        result_text = result.content[0].text if result.content else ""
+
+                        tool_id = call.get("id")
+                        if tool_id:
+                            messages.append(
+                                {"role": "tool", "content": result_text, "tool_call_id": tool_id}
+                            )
+                        else:
+                            messages.append({"role": "tool", "content": result_text})
 
 
 if __name__ == "__main__":
