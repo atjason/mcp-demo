@@ -14,6 +14,8 @@ _server_script = _server_dir / "server.py"
 
 # Model: use env or default to qwen2.5:3b
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
+# Ollama server URL (e.g. http://localhost:11434); optional
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
 
 
 async def main():
@@ -33,6 +35,7 @@ async def main():
             print("MCP Tools:", [t.name for t in tools])
 
             ollama = OllamaClient()
+            # ollama = OllamaClient(host=OLLAMA_HOST)
 
             # MCP Tool -> Ollama tool schema
             ollama_tools = [
@@ -66,6 +69,7 @@ async def main():
                 messages.append({"role": "user", "content": user_text})
 
                 while True:
+                    # response = None
                     try:
                         response = await ollama.chat(
                             model=OLLAMA_MODEL,
