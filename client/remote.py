@@ -23,6 +23,7 @@ MCP_SERVERS = [
     ("server.py", "hello"),
     ("server2.py", "time"),
     ("weather.py", "weather"),
+    ("move.py", "move"),
 ]
 
 DEFAULT_BASE_URL = "https://dashscope.aliyuncs.com/compatible-mode/v1"

@@ -17,6 +17,7 @@ MCP_SERVERS = [
     ("server.py", "hello"),
     ("server2.py", "time"),
     ("weather.py", "weather"),
+    ("move.py", "move"),
 ]
 
 # 本地接口集成（REST）：MCP_SERVER_URLS 逗号分隔的 Streamable HTTP 地址，例如：

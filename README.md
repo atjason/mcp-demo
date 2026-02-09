@@ -29,12 +29,15 @@ MCP_TRANSPORT=streamable-http MCP_PORT=8002 python server/server2.py
 
 # 终端 3：weather 服务 → http://127.0.0.1:8003/mcp
 MCP_TRANSPORT=streamable-http MCP_PORT=8003 python server/weather.py
+
+# 终端 4：move 服务（机器人运动模拟）→ http://127.0.0.1:8004/mcp
+MCP_TRANSPORT=streamable-http MCP_PORT=8004 python server/move.py
 ```
 
 可选环境变量：
 
 - `MCP_TRANSPORT`：`stdio`（默认）或 `streamable-http`
-- `MCP_PORT`：HTTP 监听端口（各 server 默认 8001 / 8002 / 8003）
+- `MCP_PORT`：HTTP 监听端口（各 server 默认 8001 / 8002 / 8003 / 8004）
 - `MCP_HOST`：监听地址，默认 `127.0.0.1`
 
 ### 客户端通过 REST 连接
@@ -42,7 +45,7 @@ MCP_TRANSPORT=streamable-http MCP_PORT=8003 python server/weather.py
 设置 `MCP_SERVER_URLS` 为逗号分隔的 Streamable HTTP 地址后再启动 client：
 
 ```bash
-export MCP_SERVER_URLS="http://127.0.0.1:8001/mcp,http://127.0.0.1:8002/mcp,http://127.0.0.1:8003/mcp"
+export MCP_SERVER_URLS="http://127.0.0.1:8001/mcp,http://127.0.0.1:8002/mcp,http://127.0.0.1:8003/mcp,http://127.0.0.1:8004/mcp"
 python client/client.py
 ```
 
