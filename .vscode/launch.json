@@ -6,13 +6,24 @@
   "configurations": [
 
     {
-      "name": "Python Debugger: Current File",
+      "name": "Current File",
       "type": "debugpy",
       "request": "launch",
       "program": "${file}",
       "console": "integratedTerminal",
       // "python": "/home/jason/.pyenv/versions/3.13.11/envs/py3.13/bin/python",
       "python": "/Users/jason/.pyenv/versions/3.11.12/envs/py3.11/bin/python",
+      "env": {
+        "MCP_SERVER_URLS": "http://127.0.0.1:8001/mcp,http://127.0.0.1:8002/mcp,http://127.0.0.1:8003/mcp"
+      }
+    },
+    {
+      "name": "Python: client/remote.py",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/client/remote.py",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
       "env": {
         "MCP_SERVER_URLS": "http://127.0.0.1:8001/mcp,http://127.0.0.1:8002/mcp,http://127.0.0.1:8003/mcp"
       }

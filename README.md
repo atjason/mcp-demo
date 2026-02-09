@@ -48,6 +48,20 @@ python client/client.py
 
 客户端会通过 REST 调用上述本地 MCP 接口，不再启动 stdio 子进程。
 
+## 3. 远程 Qwen 演示（remote.py）
+
+使用在线通义千问（Qwen）API 搭配本地 MCP 服务进行对话与工具调用。
+
+- **配置**：在项目根目录创建 `config.json`（可复制 `config.json.example`），填写 `qwen` 段：
+  - `api_key`：必填，百炼 API Key
+  - `base_url`：可选，默认 `https://dashscope.aliyuncs.com/compatible-mode/v1`
+  - `model`：可选，默认 `qwen-plus`
+- **启动**：在项目根目录执行
+  ```bash
+  python client/remote.py
+  ```
+- **MCP 连接**：与上述 client 一致。未设置 `MCP_SERVER_URLS` 时使用 stdio 启动本地 server；若使用 HTTP MCP，请先启动各 server 并设置 `MCP_SERVER_URLS`。
+
 ### 用其它语言/工具调用
 
 任何能发 HTTP 请求的客户端都可以按 [MCP Streamable HTTP](https://spec.modelcontextprotocol.io/specification/2025-01-15/transports/streamable_http/) 规范与上述端点通信；也可在本机用 curl/Postman 等调试。

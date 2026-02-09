@@ -1,3 +1,4 @@
 mcp>=1.0
 ollama>=0.3
+openai
 uvicorn>=0.30
