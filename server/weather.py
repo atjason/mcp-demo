@@ -19,7 +19,11 @@ def _format_update_time(s: str) -> str:
 @mcp.tool()
 def get_weather(province: str, city: str, county: str) -> str:
     """
-    Get current weather for a location in China (province, city, county).
+    Query real-time weather for any location in China. Parameters: province (省),
+    city (市), county (区/县). If the user only mentions a city, use the same
+    value for province and city, and use a common district or "市辖区" for county.
+    Examples: 北京 -> province=北京, city=北京, county=朝阳区 (or 东城区, 西城区, etc.);
+    上海浦东 -> province=上海, city=上海, county=浦东新区; 广州 -> province=广东, city=广州, county=天河区.
     Uses Tencent Weather API.
     """
     url = BASE_URL.format(
