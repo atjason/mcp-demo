@@ -1,10 +1,15 @@
 import json
+import os
 from urllib.parse import quote
 from urllib.request import urlopen
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("weather-mcp")
+mcp = FastMCP(
+    "weather-mcp",
+    host=os.environ.get("MCP_HOST", "127.0.0.1"),
+    port=int(os.environ.get("MCP_PORT", "8003")),
+)
 
 BASE_URL = "https://wis.qq.com/weather/common?source=pc&weather_type=observe&province={province}&city={city}&county={county}"
 
@@ -59,4 +64,4 @@ def get_weather(province: str, city: str, county: str) -> str:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport=os.environ.get("MCP_TRANSPORT", "stdio"))

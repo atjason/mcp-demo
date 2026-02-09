@@ -4,19 +4,26 @@ import os
 from contextlib import AsyncExitStack
 from pathlib import Path
 
-from mcp.client.stdio import stdio_client, StdioServerParameters
 from mcp.client.session import ClientSession
+from mcp.client.stdio import stdio_client, StdioServerParameters
+from mcp.client.streamable_http import streamable_http_client
 
 from ollama import AsyncClient as OllamaClient
 
 _server_dir = Path(__file__).resolve().parent.parent / "server"
 
-# (script_name, label) — each gets StdioServerParameters
+# 本地代码集成（stdio）：按脚本启动子进程
 MCP_SERVERS = [
     ("server.py", "hello"),
     ("server2.py", "time"),
     ("weather.py", "weather"),
 ]
+
+# 本地接口集成（REST）：MCP_SERVER_URLS 逗号分隔的 Streamable HTTP 地址，例如：
+# http://127.0.0.1:8001/mcp,http://127.0.0.1:8002/mcp,http://127.0.0.1:8003/mcp
+MCP_SERVER_URLS = os.environ.get("MCP_SERVER_URLS", "").strip()
+if MCP_SERVER_URLS:
+    MCP_SERVER_URLS = [u.strip() for u in MCP_SERVER_URLS.split(",") if u.strip()]
 
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:3b")
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
@@ -29,25 +36,44 @@ async def main():
     all_tools: list = []
 
     async with exit_stack:
-        for script_name, _label in MCP_SERVERS:
-            script_path = _server_dir / script_name
-            if not script_path.exists():
-                continue
-            params = StdioServerParameters(
-                command="python",
-                args=[str(script_path)],
-                cwd=_server_dir,
-            )
-            read, write = await exit_stack.enter_async_context(stdio_client(params))
-            session = ClientSession(read, write)
-            await exit_stack.enter_async_context(session)
-            await session.initialize()
-            sessions.append(session)
+        if MCP_SERVER_URLS:
+            # 通过 REST (Streamable HTTP) 连接本地 MCP 服务
+            for url in MCP_SERVER_URLS:
+                try:
+                    (read, write, _) = await exit_stack.enter_async_context(
+                        streamable_http_client(url)
+                    )
+                    session = ClientSession(read, write)
+                    await exit_stack.enter_async_context(session)
+                    await session.initialize()
+                    sessions.append(session)
+                    list_result = await session.list_tools()
+                    for t in list_result.tools:
+                        all_tools.append(t)
+                        tool_to_session[t.name] = session
+                except Exception as e:
+                    print(f"连接 {url} 失败: {e}")
+        else:
+            # 原有：stdio 子进程方式
+            for script_name, _label in MCP_SERVERS:
+                script_path = _server_dir / script_name
+                if not script_path.exists():
+                    continue
+                params = StdioServerParameters(
+                    command="python",
+                    args=[str(script_path)],
+                    cwd=_server_dir,
+                )
+                read, write = await exit_stack.enter_async_context(stdio_client(params))
+                session = ClientSession(read, write)
+                await exit_stack.enter_async_context(session)
+                await session.initialize()
+                sessions.append(session)
 
-            list_result = await session.list_tools()
-            for t in list_result.tools:
-                all_tools.append(t)
-                tool_to_session[t.name] = session
+                list_result = await session.list_tools()
+                for t in list_result.tools:
+                    all_tools.append(t)
+                    tool_to_session[t.name] = session
 
         if not all_tools:
             print("未加载到任何 MCP 工具，退出。")
